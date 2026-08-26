@@ -42,6 +42,44 @@ app.get("/jogos/:id", (req, res) => {
   res.json(jogo);
 });
 
+app.put("/jogos/:id", (req, res) => {
+  const id = Number(req.params.id);
+
+  const jogo = jogos.find((jogo) => jogo.id === id);
+
+  if (!jogo) {
+    return res.status(404).json({
+      message: "Jogo não encontrado"
+    });
+  }
+
+  jogo.nome = req.body.nome;
+  jogo.genero = req.body.genero;
+
+  res.json({
+    mensagem: "Jogo atualizado com sucesso",
+    jogo
+  });
+});
+
+app.delete("/jogos/:id", (req, res) => {
+  const id = Number(req.params.id);
+  const indiceJogo = jogos.findIndex((jogo) => jogo.id === id);
+
+  if (indiceJogo === -1) {
+    return res.status(404).json({
+      message: "Jogo não encontrado"
+    });
+  }
+
+  const [jogoRemovido] = jogos.splice(indiceJogo, 1);
+
+  res.json({
+    mensagem: "Jogo removido com sucesso",
+    jogo: jogoRemovido
+  });
+});
+
 app.post("/jogos", (req, res) => {
   const novoJogo = {
     id: jogos.length + 1,
