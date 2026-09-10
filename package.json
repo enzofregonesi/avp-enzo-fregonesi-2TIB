@@ -16,6 +16,7 @@
     "bcrypt": "^6.0.0",
     "express": "^5.2.1",
     "multer": "^2.0.2",
+    "swagger-jsdoc": "^6.3.0",
     "swagger-ui-express": "^5.0.1"
   },
   "devDependencies": {
