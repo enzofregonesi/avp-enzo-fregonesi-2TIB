@@ -6,8 +6,10 @@ import authRoutes from "./routes/authRoutes.js";
 import crudRoutes from "./routes/crudRoutes.js";
 import uploadRoutes from "./routes/uploadRoutes.js";
 import swaggerDocument from "./docs/swagger.js";
+import prisma from "./config/prisma.js";
 
 const app = express();
+const port = process.env.PORT || 3000;
 const swaggerOptions = {
   definition: {
     ...swaggerDocument,
@@ -56,5 +58,21 @@ app.use((error, _req, res, _next) => {
   console.error(error);
   res.status(500).json({ mensagem: "Erro interno do servidor" });
 });
+
+
+
+try {
+  await prisma.$connect();
+  console.log("Conectado ao banco de dados com sucesso!");
+  
+app.listen(port, () => {
+  console.log(`Servidor rodando em http://localhost:${port}`);
+});
+} catch (error) {
+  console.error("Erro ao conectar ao banco de dados:", error.message);
+
+  await prisma.$disconnect();
+  process.exitCode = 1;
+}
 
 export default app;
