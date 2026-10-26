@@ -1,3 +1,4 @@
+import "dotenv/config";
 import express from "express";
 import path from "node:path";
 import swaggerUI from "swagger-ui-express";
@@ -6,10 +7,8 @@ import authRoutes from "./routes/authRoutes.js";
 import crudRoutes from "./routes/crudRoutes.js";
 import uploadRoutes from "./routes/uploadRoutes.js";
 import swaggerDocument from "./docs/swagger.js";
-import prisma from "./config/prisma.js";
 
 const app = express();
-const port = process.env.PORT || 3000;
 const swaggerOptions = {
   definition: {
     ...swaggerDocument,
@@ -36,7 +35,7 @@ const swaggerOptions = {
       }
     }
   },
-  apis: ["./server.js"]
+  apis: []
 };
 
 const swaggerSpec = swaggerJsdoc(swaggerOptions);
@@ -56,23 +55,13 @@ app.use("/api-docs", swaggerUI.serve, swaggerUI.setup(swaggerSpec));
 
 app.use((error, _req, res, _next) => {
   console.error(error);
+  if (error instanceof SyntaxError && "body" in error) {
+    return res.status(400).json({ mensagem: "JSON inválido no corpo da requisição" });
+  }
+  if (error.code === "P2021" || error.code === "P2022") {
+    return res.status(500).json({ mensagem: "Banco desatualizado; aplique as migrations do Prisma" });
+  }
   res.status(500).json({ mensagem: "Erro interno do servidor" });
 });
-
-
-
-try {
-  await prisma.$connect();
-  console.log("Conectado ao banco de dados com sucesso!");
-  
-app.listen(port, () => {
-  console.log(`Servidor rodando em http://localhost:${port}`);
-});
-} catch (error) {
-  console.error("Erro ao conectar ao banco de dados:", error.message);
-
-  await prisma.$disconnect();
-  process.exitCode = 1;
-}
 
 export default app;

@@ -3,20 +3,38 @@ export default {
   info: {
     title: "API AV2 - Jogos",
     version: "1.0.0",
-    description: "API Express com armazenamento em memória, autenticação, CRUD e upload."
+    description: "API de jogos com persistência MySQL via Prisma e autenticação JWT."
   },
   servers: [{ url: "http://localhost:3000" }],
   components: {
     securitySchemes: {
-      bearerAuth: { type: "http", scheme: "bearer", bearerFormat: "Token fixo" }
+      bearerAuth: { type: "http", scheme: "bearer", bearerFormat: "JWT" }
     },
     schemas: {
       Jogo: {
         type: "object",
+        required: ["nome", "genero"],
         properties: {
           id: { type: "integer" },
           nome: { type: "string" },
           genero: { type: "string" }
+        }
+      },
+      UsuarioCadastro: {
+        type: "object",
+        required: ["nome", "email", "senha"],
+        properties: {
+          nome: { type: "string", minLength: 2, maxLength: 100 },
+          email: { type: "string", format: "email" },
+          senha: { type: "string", minLength: 6, maxLength: 72, format: "password" }
+        }
+      },
+      Credenciais: {
+        type: "object",
+        required: ["email", "senha"],
+        properties: {
+          email: { type: "string", format: "email" },
+          senha: { type: "string", format: "password" }
         }
       }
     }
@@ -25,15 +43,15 @@ export default {
     "/usuarios": {
       post: {
         summary: "Cadastrar usuário",
-        requestBody: { required: true, content: { "application/json": { schema: { type: "object", required: ["nome", "email", "senha"], properties: { nome: { type: "string" }, email: { type: "string" }, senha: { type: "string", format: "password" } } } } } },
-        responses: { 201: { description: "Usuário cadastrado" } }
+        requestBody: { required: true, content: { "application/json": { schema: { "$ref": "#/components/schemas/UsuarioCadastro" } } } },
+        responses: { 201: { description: "Usuário cadastrado" }, 400: { description: "Dados inválidos" }, 409: { description: "E-mail já cadastrado" } }
       }
     },
     "/login": {
       post: {
         summary: "Autenticar usuário",
-        requestBody: { required: true, content: { "application/json": { schema: { type: "object", required: ["email", "senha"], properties: { email: { type: "string" }, senha: { type: "string", format: "password" } } } } } },
-        responses: { 200: { description: "Token gerado" }, 401: { description: "Credenciais inválidas" } }
+        requestBody: { required: true, content: { "application/json": { schema: { "$ref": "#/components/schemas/Credenciais" } } } },
+        responses: { 200: { description: "JWT gerado" }, 401: { description: "Credenciais inválidas" } }
       }
     },
     "/upload": {
